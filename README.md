@@ -16,17 +16,26 @@ npm install
 npm run build
 ```
 
-## Tools disponibles
+## Tools disponibles (MCP)
 
 | Tool | Descripción |
 |---|---|
-| `sunat_listar_datasets` | Lista los datasets de SUNAT disponibles (slug, título, cantidad de recursos). |
-| `sunat_obtener_dataset` | Detalle y lista de recursos de un dataset dado su slug. |
+| `sunat_listar_datasets` | Lista los datasets de SUNAT disponibles (slug, título, cantidad de recursos). Cacheado localmente. |
+| `sunat_obtener_dataset` | Detalle y lista de recursos de un dataset dado su slug. Cacheado localmente. |
 | `sunat_obtener_recurso` | Metadata y URL real de descarga de un recurso dado su id. |
 | `sunat_previsualizar_recurso` | Previsualiza las primeras filas de un recurso (csv suelto o csv dentro de zip) sin descargarlo completo. |
+| `sunat_descargar_recurso` | Descarga el recurso completo (csv o zip) a disco y devuelve la ruta y el tamaño descargado. |
 
 Flujo típico: `sunat_listar_datasets` → `sunat_obtener_dataset` (con el `dataset` elegido) →
-`sunat_previsualizar_recurso` (con el `id` del recurso elegido).
+`sunat_previsualizar_recurso` o `sunat_descargar_recurso` (con el `id` del recurso elegido).
+
+### Caché local
+
+`sunat_listar_datasets` y `sunat_obtener_dataset` (y sus equivalentes en la CLI, `list`/`show`)
+cachean su resultado en disco en `~/.sunat-mcp-cache`, ya que el catálogo de SUNAT cambia con poca
+frecuencia. El TTL por defecto es 6 horas y se puede ajustar con la variable de entorno
+`SUNAT_CACHE_TTL_MS` (en milisegundos; `0` desactiva la caché). Para limpiarla manualmente:
+`sunat cache clear`.
 
 ### Nota sobre el portal
 
@@ -49,15 +58,45 @@ Agrega en tu configuración de servidores MCP (`claude_desktop_config.json` o eq
   "mcpServers": {
     "sunat-datos-abiertos": {
       "command": "node",
-      "args": ["C:\\source\\mcp-'nodefinido'\\build\\index.js"]
+      "args": ["C:\\source\\mcp-sunat\\build\\index.js"]
     }
   }
 }
 ```
 
+## Uso como CLI en terminal
+
+Además del servidor MCP, este paquete instala un comando `sunat` para usar directamente en la
+terminal, sin pasar por un cliente MCP.
+
+```bash
+npm run build
+npm link        # instala el comando `sunat` globalmente (symlink al build local)
+```
+
+Después de eso, `sunat` queda disponible desde cualquier carpeta:
+
+```bash
+sunat list                          # lista los datasets de SUNAT
+sunat show <dataset>                # detalle y recursos de un dataset
+sunat resource <resource_id>        # metadata y URL de un recurso
+sunat preview <resource_id> -n 50   # previsualiza filas (default 20)
+sunat download <resource_id> -o ./padron.csv   # descarga el recurso completo
+sunat cache clear                   # limpia la caché local de datasets
+```
+
+Flags globales:
+
+- `--json`: imprime la respuesta como JSON crudo (útil para scripting/pipes) en vez de tablas.
+- `--no-color`: desactiva colores en la salida.
+
+Para desinstalar el comando global: `npm unlink -g sunat-datos-abiertos-mcp` (o el nombre que
+muestre `npm ls -g --depth=0`).
+
 ## Desarrollo
 
 ```bash
 npm run build   # compila TypeScript a build/
-npm start       # corre el servidor compilado
+npm start       # corre el servidor MCP compilado (build/index.js)
+node build/cli.js list   # corre la CLI sin necesidad de npm link
 ```

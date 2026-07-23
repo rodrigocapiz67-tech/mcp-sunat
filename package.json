@@ -14,6 +14,10 @@
   "type": "module",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
+    "chalk": "^5.6.2",
+    "cli-table3": "^0.6.5",
+    "commander": "^13.1.0",
+    "ora": "^8.2.0",
     "unzipper": "^0.12.5",
     "zod": "^4.4.3"
   },
@@ -23,6 +27,7 @@
     "typescript": "^6.0.3"
   },
   "bin": {
-    "sunat-datos-abiertos-mcp": "build/index.js"
+    "sunat-datos-abiertos-mcp": "build/index.js",
+    "sunat": "build/cli.js"
   }
 }
